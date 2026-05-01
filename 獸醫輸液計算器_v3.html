@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>獸醫輸液計算器 Vet Fluid Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#F5F5F5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;color:#1A1A1A;padding:20px;}
+.app{max-width:720px;margin:0 auto;}
+h1{font-size:18px;font-weight:600;color:#185FA5;margin-bottom:4px;}
+.subtitle{font-size:12px;color:#888;margin-bottom:20px;}
+.sec{background:#fff;border:0.5px solid #E0E0E0;border-radius:12px;padding:1.25rem;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.sec-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:1rem;}
+.row{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start;}
+.field{flex:1;}
+label{display:block;font-size:13px;color:#555;margin-bottom:4px;}
+input[type=number],select{width:100%;height:36px;padding:0 10px;border:1px solid #CCC;border-radius:8px;background:#fff;color:#1A1A1A;font-size:14px;outline:none;}
+input[type=number]:focus,select:focus{border-color:#185FA5;box-shadow:0 0 0 3px rgba(24,95,165,.1);}
+input[type=range]{width:100%;accent-color:#185FA5;}
+.trow{display:flex;gap:8px;}
+.tbtn{flex:1;height:36px;border:1px solid #CCC;border-radius:8px;background:#fff;color:#1A1A1A;font-size:13px;cursor:pointer;transition:all .15s;}
+.tbtn:hover{background:#F0F4FF;}
+.dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
+.dbtn{border:1px solid #CCC;border-radius:8px;padding:10px 8px;cursor:pointer;text-align:left;background:#fff;transition:all .15s;}
+.dbtn:hover{background:#F5F8FF;}
+.dbtn .pct{font-size:14px;font-weight:700;margin-bottom:3px;color:#1A1A1A;}
+.dbtn .range{font-size:11px;font-weight:600;margin-bottom:4px;color:#888;}
+.dbtn .sign{font-size:10px;line-height:1.4;color:#777;}
+.dbtn.sel{background:#E6F1FB;border:1.5px solid #185FA5;}
+.dbtn.sel .pct{color:#185FA5;} .dbtn.sel .range{color:#185FA5;} .dbtn.sel .sign{color:#0C447C;}
+.dehyd-input-row{display:flex;align-items:center;gap:10px;background:#F5F5F5;border-radius:8px;padding:8px 12px;}
+.dehyd-input-row label{font-size:13px;color:#555;margin:0;white-space:nowrap;}
+.dehyd-input-row input{width:80px;height:32px;font-size:15px;font-weight:600;text-align:center;border:1.5px solid #185FA5;border-radius:8px;background:#fff;color:#185FA5;}
+.dehyd-input-row .hint{font-size:12px;color:#888;}
+.results{background:#F0F4FA;border-radius:12px;padding:1.25rem;margin-bottom:14px;}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}
+.metric{background:#fff;border-radius:8px;padding:12px;border:1px solid #E0E0E0;}
+.mlabel{font-size:11px;color:#888;margin-bottom:4px;}
+.mval{font-size:22px;font-weight:600;color:#1A1A1A;}
+.munit{font-size:12px;color:#888;}
+.rate-card{background:#fff;border:1px solid #CCC;border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.warnbox{background:#FFF3E0;border:1px solid #FFCC80;border-radius:8px;padding:10px 12px;font-size:13px;color:#6D3B00;margin-bottom:10px;line-height:1.6;}
+.errbox{background:#FFEBEE;border:1px solid #FFCDD2;border-radius:8px;padding:10px 12px;font-size:13px;color:#5C0000;margin-top:8px;line-height:1.6;}
+.adjbox{background:#FFFDE7;border:1px solid #FFF176;border-radius:8px;padding:10px 12px;font-size:13px;color:#5C3D00;margin-top:8px;line-height:1.7;}
+.dkabox{background:#F3E5F5;border:1px solid #CE93D8;border-radius:8px;padding:10px 12px;font-size:13px;color:#4A1C7A;margin-top:8px;line-height:1.6;}
+.infobox{background:#E3F2FD;border:1px solid #90CAF9;border-radius:8px;padding:10px 12px;font-size:13px;color:#0D47A1;margin-bottom:10px;line-height:1.5;}
+.monitor-box{background:#FFFAFA;border:1.5px solid #E53935;border-radius:10px;padding:14px 16px;margin-bottom:14px;line-height:1.7;}
+.monitor-box .mtitle{font-size:12px;font-weight:700;color:#B71C1C;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.monitor-box .mitem{font-size:12px;color:#C62828;margin-bottom:6px;padding-left:16px;position:relative;line-height:1.6;}
+.monitor-box .mitem:last-child{margin-bottom:0;}
+.monitor-box .mitem::before{content:'•';position:absolute;left:2px;color:#E53935;}
+.monitor-box .mitem b{color:#B71C1C;font-weight:700;}
+.esec{border:1px solid #E0E0E0;border-radius:8px;overflow:hidden;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.ehdr{background:#F5F5F5;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+.ehdr:hover{background:#EBEBEB;}
+.ehdr h4{font-size:14px;font-weight:600;}
+.ebody{padding:16px;display:none;background:#fff;}
+.ebody.open{display:block;}
+.etabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.etab{padding:6px 14px;border:1px solid #CCC;border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:all .15s;}
+.etab:hover{background:#F0F4FF;border-color:#185FA5;}
+.epanel{display:none;}
+.epanel.open{display:block;}
+.einput-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap;}
+.einput-row .field{flex:1;min-width:120px;}
+.eresult{background:#E3F2FD;border-radius:8px;padding:12px 14px;font-size:13px;color:#0D47A1;line-height:1.8;border:1px solid #BBDEFB;}
+.eresult b{font-weight:600;}
+.formula-box{background:#F5F5F5;border-radius:8px;padding:12px 14px;font-size:13px;color:#1A1A1A;line-height:1.8;margin-bottom:10px;border:1px solid #E0E0E0;}
+.combo-box{background:#F1F8E9;border:1px solid #AED581;border-radius:8px;padding:12px 14px;font-size:13px;color:#1B5E20;line-height:1.8;margin-top:8px;}
+.combo-box b{font-weight:600;}
+.combo-title{font-size:12px;font-weight:600;color:#33691E;margin-bottom:6px;}
+.step-box{border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.7;margin-bottom:8px;}
+.step1{background:#E8F5E9;color:#1B5E20;border:1px solid #A5D6A7;}
+.step2{background:#E3F2FD;color:#0D47A1;border:1px solid #90CAF9;}
+.etable{width:100%;font-size:12px;border-collapse:collapse;margin-bottom:6px;}
+.etable th{text-align:left;padding:5px 8px;background:#F5F5F5;font-weight:600;color:#555;font-size:11px;border-bottom:1px solid #E0E0E0;}
+.etable td{padding:5px 8px;border-bottom:1px solid #F0F0F0;color:#1A1A1A;}
+.etable tr:last-child td{border-bottom:none;}
+.note{font-size:11px;color:#888;line-height:1.5;margin-top:8px;}
+.hint-box{background:#F5F5F5;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;color:#555;line-height:1.6;border:1px solid #E0E0E0;}
+.ref-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;margin-left:4px;background:#E8F5E9;color:#2E7D32;}
+.divl{border-top:1px solid #BBDEFB;margin:7px 0;}
+.divlg{border-top:1px solid #AED581;margin:7px 0;}
+.toggle-mode{display:flex;gap:6px;margin-bottom:10px;}
+.mdbtn{padding:6px 14px;border:1px solid #CCC;border-radius:20px;font-size:12px;cursor:pointer;background:#fff;color:#777;transition:all .15s;}
+.mdbtn:hover{background:#F0F4FF;}
+.mdbtn.on{background:#E3F2FD;border-color:#185FA5;color:#185FA5;font-weight:600;}
+.manual-note{background:#FFFDE7;border:1px solid #FFF176;border-radius:8px;padding:8px 12px;font-size:12px;color:#6D4C00;margin-bottom:10px;}
+.dex-btns{display:flex;gap:8px;margin-bottom:12px;}
+.dex-btn{flex:1;height:44px;border:1px solid #CCC;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;background:#fff;color:#1A1A1A;transition:all .15s;}
+.dex-btn:hover{background:#FFF8F0;border-color:#E65100;}
+.dex-btn.on{background:#FFF3E0;border:2px solid #E65100;color:#E65100;}
+.dex-result{background:#FFF8F0;border:1px solid #FFCC80;border-radius:8px;padding:12px 14px;font-size:13px;color:#5C3D00;line-height:1.8;}
+.dex-result b{font-weight:600;}
+.dex-warn{background:#FFEBEE;border:1px solid #FFCDD2;border-radius:8px;padding:10px 12px;font-size:13px;color:#5C0000;margin-top:8px;line-height:1.6;}
+.dex-info{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:10px 12px;font-size:12px;color:#1B5E20;margin-top:8px;line-height:1.6;}
+footer{text-align:center;font-size:11px;color:#AAA;margin-top:20px;padding:10px;}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>🐾 獸醫輸液計算器</h1>
+<div class="subtitle">Veterinary IV Fluid Therapy Calculator｜僅供臨床參考，請依實際病情判斷</div>
+
+<div class="sec">
+  <div class="sec-title">病患資料</div>
+  <div class="row">
+    <div class="field"><label>物種</label>
+      <div class="trow">
+        <button class="tbtn" id="sp-dog" onclick="setSp('dog')">犬</button>
+        <button class="tbtn" id="sp-cat" onclick="setSp('cat')">貓</button>
+      </div>
+    </div>
+    <div class="field"><label>體重（kg）</label><input type="number" id="wt" value="10" min="0.1" max="120" step="0.1" oninput="calc()"></div>
+  </div>
+  <label style="margin-bottom:8px;display:block;">脫水程度</label>
+  <div class="dgrid">
+    <div class="dbtn" id="d-lt5" onclick="setDCard(0,'d-lt5')">
+      <div class="pct">&lt;5%</div><div class="range">正常／偵測不到</div>
+      <div class="sign">病史疑似流失但理學檢查無異常</div>
+    </div>
+    <div class="dbtn" id="d-5" onclick="setDCard(5,'d-5')">
+      <div class="pct">5–6%</div><div class="range">輕度</div>
+      <div class="sign">皮膚彈性輕微下降、黏膜稍乾</div>
+    </div>
+    <div class="dbtn" id="d-7" onclick="setDCard(7,'d-7')">
+      <div class="pct">6–8%</div><div class="range">中度</div>
+      <div class="sign">皮膚回彈延遲、眼球輕微凹陷、CRT 正常</div>
+    </div>
+    <div class="dbtn" id="d-10" onclick="setDCard(10,'d-10')">
+      <div class="pct">10–12%</div><div class="range">重度／休克</div>
+      <div class="sign">帳篷徵象持續、CRT &gt;2.5s、脈搏細弱</div>
+    </div>
+  </div>
+  <div class="dehyd-input-row">
+    <label>脫水 %（精確輸入）</label>
+    <input type="number" id="dehyd-exact" value="0" min="0" max="12" step="0.5" oninput="setDExact()">
+    <span class="hint">輸入 0–12，卡片為快捷填入</span>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="sec-title">輸液需求計算</div>
+  <div class="row">
+    <div class="field">
+      <label>維持量 — <span id="maint-lbl">50</span> mL/kg/天 &nbsp;<span id="maint-range-badge" style="font-size:11px;background:#E3F2FD;color:#185FA5;padding:2px 8px;border-radius:20px;">犬：40–60</span></label>
+      <input type="range" id="maint-sl" min="40" max="60" value="50" step="1" style="width:100%;" oninput="syncMaint(this.value)">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-top:2px;">
+        <span id="maint-min-lbl">40</span><span id="maint-mid-lbl">50</span><span id="maint-max-lbl">60</span>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="field"><label>持續性損失（mL/hr）</label><input type="number" id="ongoing" value="0" min="0" max="500" step="1" oninput="calc()"></div>
+    <div class="field"><label>補液時間（小時）</label><input type="number" id="rehrs" value="24" min="1" max="72" step="1" oninput="calc()"></div>
+  </div>
+  <div class="row" style="margin-bottom:0;">
+    <div class="field"><label>心臟疾病</label>
+      <div class="trow">
+        <button class="tbtn" id="cd-no" onclick="setCard(false)">無</button>
+        <button class="tbtn" id="cd-yes" onclick="setCard(true)">有 — 限制速率</button>
+      </div>
+    </div>
+    <div class="field"><label>輸液種類</label>
+      <div class="trow">
+        <button class="tbtn" id="fl-lrs" onclick="setFluid('LRS')">LRS</button>
+        <button class="tbtn" id="fl-ns" onclick="setFluid('NS')">0.9% NaCl</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="results">
+  <div id="warn-card" class="warnbox" style="display:none;">⚠ 心臟疾病 — 輸液速率上限為 2 mL/kg/hr，請密切監測。</div>
+  <div id="warn-tolerance" class="errbox" style="display:none;margin-top:0;margin-bottom:10px;"></div>
+  <div id="info-fluid" class="infobox"></div>
+  <div class="rgrid">
+    <div class="metric"><div class="mlabel">體液缺失量</div><span class="mval" id="r-def">-</span> <span class="munit">mL</span></div>
+    <div class="metric"><div class="mlabel">維持量</div><span class="mval" id="r-maint">-</span> <span class="munit">mL</span></div>
+    <div class="metric"><div class="mlabel">總輸液量</div><span class="mval" id="r-tot">-</span> <span class="munit">mL</span></div>
+  </div>
+  <div class="rate-card">
+    <div><div class="mlabel">輸液速率</div><div><span class="mval" id="r-rate" style="font-size:32px;">-</span> <span class="munit">mL/hr</span></div></div>
+    
+    <div style="border-left:1px solid #E0E0E0;padding-left:16px;"><div class="mlabel">mL/kg/hr</div><div><span class="mval" id="r-mlkghr" style="font-size:20px;">-</span></div></div>
+  </div>
+</div>
+
+<div class="esec">
+  <div class="ehdr" onclick="toggleE()"><h4>⚗️ 電解質補充</h4><span id="earrow" style="font-size:12px;color:#888;">▼ 展開</span></div>
+  <div class="ebody" id="ebody">
+    <div class="monitor-box">
+      <div class="mtitle">🩺 臨床監控警示 Clinical Monitoring Required</div>
+      <div class="mitem"><b>公式僅供參考：</b>此計算僅基於體液分布理論，未考慮腎臟排泄、內源性水分轉移及 Ongoing loss（如尿崩或滲透性利尿）。</div>
+      <div class="mitem"><b>動態調整：</b>實際升／降速可能與預期落差極大。<b>必須每 4–6 小時複驗電解質</b>，並根據結果即時調整速率。</div>
+      <div class="mitem"><b>見好就收：</b>若 24 小時內已達成目標（10–12 mEq/L），應<b>調慢速率或更換輸液種類</b>，避免矯正過度。</div>
+    </div>
+    <div class="etabs">
+      <div class="etab" id="tab-k" onclick="setEtab('k')">低血鉀</div>
+      <div class="etab" id="tab-na-low" onclick="setEtab('na-low')">低血鈉</div>
+      <div class="etab" id="tab-na-high" onclick="setEtab('na-high')">高血鈉</div>
+      <div class="etab" id="tab-phos" onclick="setEtab('phos')">低血磷</div>
+      <div class="etab" id="tab-combo" onclick="setEtab('combo')">鉀＋磷合併</div>
+      <div class="etab" id="tab-dex" onclick="setEtab('dex')">葡萄糖（Dextrose）</div>
+    </div>
+
+    <div class="epanel open" id="ep-k">
+      <div class="einput-row">
+        <div class="field"><label>血清 K⁺（mEq/L）<span class="ref-badge">正常 3.5–5.8</span></label><input type="number" id="k-val" value="3.2" min="1.0" max="8.0" step="0.1" oninput="calcK();calcCombo();"></div>
+        <div class="field"><label>輸液袋容量（mL，可自填）</label><input type="number" id="k-bag" value="500" min="50" max="2000" step="50" oninput="calcK();calcCombo();" style="width:100%;height:36px;padding:0 10px;border:1px solid #CCC;border-radius:8px;background:#fff;color:#1A1A1A;font-size:14px;"></div>
+        <div class="field"><label>KCl 原液濃度</label><select id="k-conc" onchange="calcK();calcCombo();"><option value="2" selected>2 mEq/mL</option><option value="1">1 mEq/mL</option></select></div>
+      </div>
+      <div style="margin-bottom:8px;"><label style="margin-bottom:6px;display:block;">補鉀劑量模式</label>
+        <div class="toggle-mode">
+          <div class="mdbtn on" id="mode-auto" onclick="setKMode('auto')">📋 依血鉀建議</div>
+          <div class="mdbtn" id="mode-manual" onclick="setKMode('manual')">✏️ 手動指定濃度</div>
+        </div>
+      </div>
+      <div id="manual-block" style="display:none;">
+        <div class="manual-note">⚠ 手動模式：已覆蓋建議值。請確認目標濃度符合臨床安全範圍（最高 80 mEq/L）。</div>
+        <div class="row" style="margin-bottom:12px;">
+          <div class="field"><label>自訂目標 K⁺ 濃度（mEq/L）</label><input type="number" id="k-custom" value="28" min="1" max="80" step="1" oninput="calcK();calcCombo();"></div>
+          <div class="field"><label>自訂最高速率（mL/kg/hr）</label><input type="number" id="k-maxrate" value="18" min="1" max="25" step="1" oninput="calcK();calcCombo();"></div>
+        </div>
+      </div>
+      <div id="k-result" class="eresult"></div>
+      <table class="etable" style="margin-top:12px;">
+        <thead><tr><th>血清 K⁺（mEq/L）</th><th>建議加入袋中（mEq/L）</th><th>最高速率（mL/kg/hr）</th></tr></thead>
+        <tbody id="k-tbl"></tbody>
+      </table>
+      <div class="note">切勿超過最高速率。KCl 只能加入輸液袋中，禁止直接靜脈推注。每 4–6 小時複查 K⁺。</div>
+    </div>
+
+    <div class="epanel" id="ep-na-low">
+      <div class="formula-box"><b>核心公式：</b>ΔNa⁺ = (Na_fluid − Na_serum) ÷ (TBW + 1)<br>每輸入 1 L 點滴後，血鈉預期改變量（mEq/L）<br><span style="font-size:12px;color:#888;">TBW：犬 = 體重 × 0.6；貓 = 體重 × 0.5</span></div>
+      <div class="einput-row">
+        <div class="field"><label>血清 Na⁺（mEq/L）<span class="ref-badge">正常 150–165</span></label><input type="number" id="nalow-val" value="128" min="100" max="149" step="1" oninput="calcNaLow()"></div>
+        <div class="field"><label>體重（kg）</label><input type="number" id="nalow-wt" value="10" min="0.1" max="120" step="0.1" oninput="calcNaLow()"></div>
+      </div>
+      <div id="nalow-result"></div>
+      <div class="note">目標：每 24 小時 Na⁺ 上升 &lt;10–12 mEq/L。過快矯正有橋腦中央髓鞘溶解症（ODS）風險。</div>
+    </div>
+
+    <div class="epanel" id="ep-na-high">
+      <div class="einput-row">
+        <div class="field"><label>血清 Na⁺（mEq/L）<span class="ref-badge">正常 150–165</span></label><input type="number" id="nahigh-val" value="168" min="156" max="220" step="1" oninput="calcNaHigh()"></div>
+        <div class="field"><label>體重（kg）</label><input type="number" id="nahigh-wt" value="10" min="0.1" max="120" step="0.1" oninput="calcNaHigh()"></div>
+        <div class="field"><label>脫水程度（%）</label><input type="number" id="nahigh-dehyd" value="0" min="0" max="12" step="0.5" oninput="calcNaHigh()"></div>
+      </div>
+      <div id="nahigh-result"></div>
+      <div class="note">兩個階段均需每 4–6 小時監測 Na⁺ 並適時調整速率。</div>
+    </div>
+
+    <div class="epanel" id="ep-phos">
+      <div class="einput-row">
+        <div class="field"><label>血清磷（mg/dL）<span class="ref-badge">正常 3.1–7.5</span></label><input type="number" id="phos-val" value="2.0" min="0.1" max="7.5" step="0.1" oninput="calcPhos();calcCombo();"></div>
+        <div class="field"><label>體重（kg）</label><input type="number" id="phos-wt" value="10" min="0.1" max="120" step="0.1" oninput="calcPhos();calcCombo();"></div>
+      </div>
+      <div class="einput-row">
+        <div class="field"><label>KPO₄ 速率（mmol/kg/hr）</label><input type="number" id="phos-rate-input" value="0.03" min="0.01" max="0.12" step="0.01" oninput="calcPhos();calcCombo();"></div>
+        <div class="field"><label>輸液袋容量（mL，可自填）</label><input type="number" id="phos-bag" value="500" min="50" max="2000" step="50" oninput="calcPhos();calcCombo();" style="width:100%;height:36px;padding:0 10px;border:1px solid #CCC;border-radius:8px;background:#fff;color:#1A1A1A;font-size:14px;"></div>
+      </div>
+      <div id="phos-result" class="eresult"></div>
+      <div class="hint-box"><b>依嚴重程度建議 KPO₄ 速率</b><br>輕度（2.0–3.0 mg/dL）：0.01–0.03 mmol/kg/hr<br>中度（1.0–1.9 mg/dL）：0.03–0.06 mmol/kg/hr<br>重度（&lt;1.0 mg/dL）：0.06–0.12 mmol/kg/hr — 需加護病房監護<br><br><b>KPO₄ 原液：</b>磷 3 mmol/mL，K⁺ 4.4 mEq/mL</div>
+      <div class="note">禁止與 LRS 混用（磷酸鹽與 Ca²⁺ 會沉澱）。必須使用 0.9% NaCl 為載體。每 4–6 小時監測 Ca²⁺ 及血磷。</div>
+    </div>
+
+    <div class="epanel" id="ep-combo">
+      <p style="font-size:13px;color:#888;margin-bottom:12px;">自動帶入「低血鉀」和「低血磷」頁籤中填入的數值，請先完成兩項輸入。</p>
+      <div id="combo-result"></div>
+      <div class="note">KPO₄ 同時提供磷（3 mmol/mL）及 K⁺（4.4 mEq/mL）。KPO₄ 與 KCl 的 K⁺ 總量不可超過目標值。速率上限以 K⁺ 限制為準。載體必須使用 0.9% NaCl。</div>
+    </div>
+
+    <div class="epanel" id="ep-dex">
+      <div style="background:#F5F5F5;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:#555;line-height:1.6;">
+        底液：<b id="dex-base-label" style="color:#1A1A1A;">LRS</b>（依上方輸液種類自動帶入）
+      </div>
+      <div class="einput-row">
+        <div class="field"><label>輸液袋容量（mL，可自填）</label><input type="number" id="dex-bag" value="500" min="50" max="2000" step="50" oninput="calcDex()" style="width:100%;height:36px;padding:0 10px;border:1px solid #CCC;border-radius:8px;background:#fff;color:#1A1A1A;font-size:14px;"></div>
+      </div>
+      <label style="margin-bottom:8px;display:block;">目標葡萄糖濃度</label>
+      <div class="dex-btns">
+        <button class="dex-btn" id="dex-25" onclick="setDex(2.5)">2.5%</button>
+        <button class="dex-btn" id="dex-50" onclick="setDex(5.0)">5.0%</button>
+      </div>
+      <div id="dex-result"></div>
+    </div>
+
+  </div>
+</div>
+<footer>獸醫輸液計算器 v3.0 ｜ 僅供臨床參考，不取代專業醫療判斷</footer>
+</div>
+
+<script>
+var sp='dog',cardiac=false,fluid='LRS';
+var dehyd=0,kMode='auto',dexConc=null;
+var currentRateMlHr=0,currentWt=10,currentMaint=50;
+var KPO4_PHOS_PER_ML=3,KPO4_K_PER_ML=4.4;
+var SON='background:#E3F2FD;color:#185FA5;border:1.5px solid #185FA5;font-weight:600;';
+var SOFF='background:#fff;color:#1A1A1A;border:1px solid #CCC;';
+var SWRN='background:#FFF3E0;color:#6D3B00;border:1.5px solid #FFCC80;font-weight:600;';
+var TON='background:#E3F2FD;color:#185FA5;border:1px solid #185FA5;font-weight:600;padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;';
+var TOFF='background:#fff;color:#1A1A1A;border:1px solid #CCC;padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;';
+var maintConfig={dog:{min:40,max:60,def:50,mid:50,label:'犬：40–60'},cat:{min:40,max:50,def:45,mid:45,label:'貓：40–50'}};
+var kTable=[{lo:0,hi:2.0,add:80,maxRate:6},{lo:2.1,hi:2.5,add:60,maxRate:8},{lo:2.6,hi:3.0,add:40,maxRate:12},{lo:3.1,hi:3.5,add:28,maxRate:18},{lo:3.6,hi:5.0,add:20,maxRate:25}];
+
+function setDCard(v,id){document.getElementById('dehyd-exact').value=v;dehyd=v;hCard(id);calc();}
+function setDExact(){var v=parseFloat(document.getElementById('dehyd-exact').value);if(isNaN(v)||v<0)v=0;if(v>12)v=12;dehyd=v;var id=null;if(v===0)id='d-lt5';else if(v>=5&&v<=6)id='d-5';else if(v>6&&v<=8)id='d-7';else if(v>=10)id='d-10';hCard(id);document.getElementById('nahigh-dehyd').value=v;calc();}
+function hCard(id){['d-lt5','d-5','d-7','d-10'].forEach(function(i){document.getElementById(i).className='dbtn'+(i===id?' sel':'');});}
+function updateMaintSlider(s){var cfg=maintConfig[s],sl=document.getElementById('maint-sl');sl.min=cfg.min;sl.max=cfg.max;var v=Math.max(cfg.min,Math.min(cfg.max,parseInt(sl.value)||cfg.def));sl.value=v;currentMaint=v;document.getElementById('maint-lbl').textContent=v;document.getElementById('maint-min-lbl').textContent=cfg.min;document.getElementById('maint-mid-lbl').textContent=cfg.mid;document.getElementById('maint-max-lbl').textContent=cfg.max;document.getElementById('maint-range-badge').textContent=cfg.label;}
+function setSp(s){sp=s;document.getElementById('sp-dog').setAttribute('style',s==='dog'?SON:SOFF);document.getElementById('sp-cat').setAttribute('style',s==='cat'?SON:SOFF);updateMaintSlider(s);document.getElementById('nalow-wt').value=currentWt;calcNaLow();calc();}
+function setCard(v){cardiac=v;document.getElementById('cd-no').setAttribute('style',!v?SON:SOFF);document.getElementById('cd-yes').setAttribute('style',v?SWRN:SOFF);document.getElementById('warn-card').style.display=v?'block':'none';calc();}
+function setFluid(f){fluid=f;document.getElementById('fl-lrs').setAttribute('style',f==='LRS'?SON:SOFF);document.getElementById('fl-ns').setAttribute('style',f==='NS'?SON:SOFF);document.getElementById('dex-base-label').textContent=f;calc();}
+function syncMaint(v){var cfg=maintConfig[sp];v=Math.max(cfg.min,Math.min(cfg.max,parseInt(v)||cfg.def));document.getElementById('maint-sl').value=v;document.getElementById('maint-lbl').textContent=v;currentMaint=v;calc();}
+function calc(){
+  var wt=parseFloat(document.getElementById('wt').value)||10;currentWt=wt;currentMaint=parseInt(document.getElementById('maint-sl').value)||50;
+  var ongoing=parseFloat(document.getElementById('ongoing').value)||0,rehrs=parseFloat(document.getElementById('rehrs').value)||24;
+  var deficit=wt*dehyd*10,maintTot=currentMaint*wt,ongoingTot=ongoing*rehrs,total=deficit+maintTot+ongoingTot;
+  var cap=cardiac?(wt*2):Infinity,rate=Math.min(total/rehrs,cap);currentRateMlHr=rate;
+  document.getElementById('r-def').textContent=Math.round(deficit);document.getElementById('r-maint').textContent=Math.round(maintTot);document.getElementById('r-tot').textContent=Math.round(total);
+  document.getElementById('r-rate').textContent=rate.toFixed(1);document.getElementById('r-mlkghr').textContent=(rate/wt).toFixed(2);
+  var tol=cardiac?(wt*2):(wt*15),tw=document.getElementById('warn-tolerance');
+  if(rate>tol){tw.style.display='block';tw.innerHTML='⚠ 當前輸液速率 '+rate.toFixed(1)+' mL/hr（'+(rate/wt).toFixed(2)+' mL/kg/hr）超過循環耐受上限（'+(cardiac?'2':'15')+' mL/kg/hr）— 請延長補液時間或重新評估輸液計畫。';}else tw.style.display='none';
+  var msgs={'LRS':'LRS（乳酸林格液）— 平衡等張晶體液，適用於大多數脫水、嘔吐、腹瀉及術後補液。','NS':'0.9% NaCl（生理食鹽水）— 無乳酸，適用於低氯性代謝性鹼中毒（如幽門阻塞）、腎上腺皮質功能低下及顱內壓升高。'};
+  var extra='';if(dehyd>=10)extra+=' 若有低蛋白血症，考慮加用膠體液（羥乙基澱粉／白蛋白）。';if(sp==='cat'&&fluid==='NS')extra+=' 注意：貓對高鈉負荷較敏感，建議優先選用 LRS。';
+  document.getElementById('info-fluid').textContent=msgs[fluid]+extra;
+  document.getElementById('nahigh-wt').value=wt;document.getElementById('phos-wt').value=wt;document.getElementById('nalow-wt').value=wt;
+  calcNaHigh();calcPhos();calcCombo();calcNaLow();calcDex();
+}
+function toggleE(){var b=document.getElementById('ebody'),a=document.getElementById('earrow');b.classList.toggle('open');a.textContent=b.classList.contains('open')?'▲ 收合':'▼ 展開';}
+function setEtab(t){['k','na-low','na-high','phos','combo','dex'].forEach(function(x){document.getElementById('tab-'+x).setAttribute('style',x===t?TON:TOFF);document.getElementById('ep-'+x).className='epanel'+(x===t?' open':'');});}
+function getKRow(k){for(var i=0;i<kTable.length;i++){if(k<=kTable[i].hi)return kTable[i];}return kTable[kTable.length-1];}
+function setKMode(m){kMode=m;document.getElementById('mode-auto').className='mdbtn'+(m==='auto'?' on':'');document.getElementById('mode-manual').className='mdbtn'+(m==='manual'?' on':'');document.getElementById('manual-block').style.display=m==='manual'?'block':'none';calcK();calcCombo();}
+function calcK(){
+  var k=parseFloat(document.getElementById('k-val').value)||3.2,bag=parseInt(document.getElementById('k-bag').value)||500,conc=parseFloat(document.getElementById('k-conc').value)||2;
+  var targetAdd,maxRate,isM=(kMode==='manual');
+  if(isM){targetAdd=parseFloat(document.getElementById('k-custom').value)||28;maxRate=parseFloat(document.getElementById('k-maxrate').value)||18;}
+  else{var r=getKRow(k);targetAdd=r.add;maxRate=r.maxRate;}
+  var meq=(targetAdd/1000)*bag,mlKCl=meq/conc,rpk=currentWt>0?currentRateMlHr/currentWt:0;
+  var kR=k<3.5?'<span style="font-size:11px;background:#FFEBEE;color:#7A0000;padding:1px 6px;border-radius:10px;margin-left:4px;">低於正常</span>':k>5.8?'<span style="font-size:11px;background:#FFF3E0;color:#6D3B00;padding:1px 6px;border-radius:10px;margin-left:4px;">高於正常</span>':'<span style="font-size:11px;background:#E8F5E9;color:#2E7D32;padding:1px 6px;border-radius:10px;margin-left:4px;">正常範圍</span>';
+  var mT=isM?'<span style="font-size:11px;background:#FFF3E0;color:#6D3B00;padding:1px 7px;border-radius:10px;margin-left:4px;">手動指定</span>':'<span style="font-size:11px;background:#E3F2FD;color:#185FA5;padding:1px 7px;border-radius:10px;margin-left:4px;">依建議值</span>';
+  var rW=currentRateMlHr>0&&rpk>maxRate?'<div class="errbox">⚠ 目前輸液速率 '+rpk.toFixed(2)+' mL/kg/hr 超過最高允許速率（'+maxRate+' mL/kg/hr）— 請降低輸液速率，或此袋不加 KCl</div>':'';
+  var eW='';if(isM&&maxRate>18)eW+='<div class="adjbox" style="margin-top:8px;">⚠ 自訂最高速率 '+maxRate+' mL/kg/hr 超過常規上限（18 mL/kg/hr），請確認臨床依據。</div>';if(isM&&targetAdd>80)eW+='<div class="errbox" style="margin-top:8px;">⚠ 目標濃度 '+targetAdd+' mEq/L 超過安全上限（80 mEq/L）。</div>';
+  document.getElementById('k-result').innerHTML='<b>K⁺ '+k+' mEq/L</b>'+kR+'&nbsp;'+mT+'<br><div style="border-top:1px solid #BBDEFB;margin:7px 0;"></div>目標濃度：<b>'+targetAdd+' mEq/L</b><br>加入 <b>'+meq.toFixed(1)+' mEq</b> KCl 至 '+bag+' mL 輸液袋<br>= 注入 <b>'+mlKCl.toFixed(2)+' mL</b> 的 '+conc+' mEq/mL KCl 原液<br>最高輸液速率：<b>'+maxRate+' mL/kg/hr</b>'+eW+rW;
+  var h='';kTable.forEach(function(r){var hl=(!isM&&k>=r.lo&&k<=r.hi);var bg=hl?'background:#E3F2FD;color:#0D47A1;font-weight:600;':'';var l=r.lo===0?'&lt;2.0':r.lo+'–'+r.hi;h+='<tr style="'+bg+'"><td style="padding:5px 8px;border-bottom:1px solid #F0F0F0;">'+l+'</td><td style="padding:5px 8px;border-bottom:1px solid #F0F0F0;">'+r.add+' mEq/L</td><td style="padding:5px 8px;border-bottom:1px solid #F0F0F0;">'+r.maxRate+'</td></tr>';});
+  document.getElementById('k-tbl').innerHTML=h;
+}
+function setDex(c){dexConc=c;document.getElementById('dex-25').className='dex-btn'+(c===2.5?' on':'');document.getElementById('dex-50').className='dex-btn'+(c===5.0?' on':'');calcDex();}
+function calcDex(){
+  if(!dexConc){document.getElementById('dex-result').innerHTML='';return;}
+  var bag=parseInt(document.getElementById('dex-bag').value)||500,pct=dexConc;
+  var g=bag*(pct/100),mlG50=g/0.5,fl=fluid==='LRS'?'LRS':'0.9% NaCl';
+  var h='<div class="dex-result">底液：<b>'+fl+'</b> '+bag+' mL → 目標濃度 <b>'+pct+'%</b><br>葡萄糖需求：<b>'+g.toFixed(1)+' g</b><br>加入 <b>'+mlG50.toFixed(1)+' mL</b> 的 50% Dextrose（G50）<br><div class="dex-info">📌 添加前請先從點滴袋抽走 <b>'+mlG50.toFixed(1)+' mL</b> 底液，再注入等量 G50，以維持總體積及濃度精準。</div>';
+  if(pct>=5)h+='<div class="dex-warn">⚠ 濃度 ≥5%：建議密切監控注射部位，若有紅腫、滲漏請立即更換留置針。高濃度葡萄糖液對血管刺激性較強。</div>';
+  h+='</div>';
+  document.getElementById('dex-result').innerHTML=h;
+}
+function calcNaLow(){var na=parseFloat(document.getElementById('nalow-val').value)||128,wt=parseFloat(document.getElementById('nalow-wt').value)||10,tf=sp==='cat'?0.5:0.6,tbw=wt*tf,nf=130;var sev,sc,tr;if(na<120){sev='重度低血鈉';sc='#6B0000';tr=0.25;}else if(na<125){sev='中度低血鈉';sc='#7A1500';tr=0.5;}else{sev='輕度低血鈉';sc='#7A3B00';tr=0.5;}var dn=(nf-na)/(tbw+1);if(dn<=0){document.getElementById('nalow-result').innerHTML='<div class="errbox">⚠ LRS（Na 130 mEq/L）鈉含量低於或等於目前血清鈉（'+na+' mEq/L），無法升鈉，請重新評估。</div>';return;}var id=(tr/dn)*1000,tc=cardiac?(currentWt*2):(currentWt*15),am=currentRateMlHr>0?currentRateMlHr:id,ad=(am/1000)*dn,ar=ad*24;var h='<b style="color:'+sc+';">'+sev+'（Na⁺ '+na+' mEq/L）</b><br><div style="border-top:1px solid #BBDEFB;margin:7px 0;"></div>TBW = '+wt+' × '+tf+' = <b>'+tbw.toFixed(1)+' L</b>（'+(sp==='dog'?'犬':'貓')+'）<br>ΔNa⁺/L = ('+nf+' − '+na+') ÷ ('+tbw.toFixed(1)+' + 1) = <b>'+dn.toFixed(3)+' mEq/L per litre</b><br><div style="border-top:1px solid #BBDEFB;margin:7px 0;"></div>目標升速：<b>'+tr+' mEq/L/hr</b> → 理想輸液速率：<b>'+id.toFixed(1)+' mL/hr</b><br>';if(id>tc){h+='<div class="adjbox">⚠ 理想速率（'+id.toFixed(1)+' mL/hr）超過循環耐受上限（'+tc.toFixed(1)+' mL/hr，'+(cardiac?'心臟疾病':'15 mL/kg/hr')+'）<br>改以當下輸液需求速率 <b>'+am.toFixed(1)+' mL/hr</b> 估算：血鈉每小時實際上升約 <b>'+ad.toFixed(3)+' mEq/L/hr</b>（每 24 hr 約 <b>'+ar.toFixed(1)+' mEq/L</b>）</div>';}else{h+='輸液：<b>LRS（Na 130 mEq/L）</b><br>預估 Na⁺ 上升：<b>'+((id/1000)*dn).toFixed(3)+' mEq/L/hr</b>（每 24 hr 約 <b>'+((id/1000)*dn*24).toFixed(1)+' mEq/L</b>）';}var rc=id>tc?ar:(id/1000)*dn*24;if(rc>12)h+='<div class="errbox">⚠ 預估每 24 hr Na⁺ 上升 '+rc.toFixed(1)+' mEq/L，超過安全上限（10–12 mEq/L）— 請降低輸液速率或延長矯正時間。</div>';if(na<120)h+='<div class="adjbox" style="margin-top:8px;">⚠ 重度低血鈉（&lt;120 mEq/L）— 建議目標升速 <b>0.25 mEq/L/hr</b>，避免腦部受損。每 2–4 小時監測 Na⁺。</div>';document.getElementById('nalow-result').innerHTML=h;}
+function calcNaHigh(){var na=parseFloat(document.getElementById('nahigh-val').value)||168,wt=parseFloat(document.getElementById('nahigh-wt').value)||10,dh=parseFloat(document.getElementById('nahigh-dehyd').value)||0;var def=wt*dh*10,ml=currentMaint*wt,p1=dh>0?(def+ml):ml,fw=0.6*wt*(1-(155/na))*1000,fr=(fw/48).toFixed(1),nd=(na-155)/2;var nr=na>=150&&na<=165?'<span style="font-size:11px;background:#E8F5E9;color:#2E7D32;padding:1px 6px;border-radius:10px;margin-left:4px;">正常範圍</span>':'<span style="font-size:11px;background:#FFEBEE;color:#7A0000;padding:1px 6px;border-radius:10px;margin-left:4px;">高於正常（正常 150–165）</span>';var sw='';if(nd>12){var sh=Math.ceil((na-155)/12*24);sw='<br><span style="color:#854F0B">⚑ 預估每 24 hr 下降 '+nd.toFixed(1)+' mEq/L，超過上限 — 建議延長至最少 '+sh+' 小時</span>';}var h='<div style="margin-bottom:8px;font-size:13px;">Na⁺ '+na+' mEq/L'+nr+'</div>';h+='<div class="step-box step1"><b>第一階段 — 補充脫水 ＋ 維持量（前 24 小時）</b><br>輸液：<b>0.9% NaCl</b><br>';h+=dh>0?'缺失量 <b>'+Math.round(def)+' mL</b> ＋ 維持量 <b>'+Math.round(ml)+' mL</b>（'+currentMaint+' mL/kg/天）= 總量 <b>'+Math.round(p1)+' mL</b><br>':'脫水量 0（偵測不到）＋ 維持量 <b>'+Math.round(ml)+' mL</b>（'+currentMaint+' mL/kg/天）<br>';h+='速率：<b>'+(p1/24).toFixed(1)+' mL/hr</b></div><div class="step-box step2"><b>第二階段 — 補充自由水不足（最少 48 小時）</b><br>自由水缺失量：<b>'+Math.round(fw)+' mL</b>（0.6 × '+wt+' × [1−155/'+na+']）<br>輸液：<b>LRS</b>（Na 130 mEq/L）<br>速率：<b>'+fr+' mL/hr</b>，分 48 小時輸注<br>預估 Na⁺ 下降：<b>每 24 hr 約 '+nd.toFixed(1)+' mEq/L</b>'+sw+'</div>';document.getElementById('nahigh-result').innerHTML=h;}
+function calcPhos(){var p=parseFloat(document.getElementById('phos-val').value),wt=parseFloat(document.getElementById('phos-wt').value)||10,ri=parseFloat(document.getElementById('phos-rate-input').value)||0.03,bag=parseInt(document.getElementById('phos-bag').value)||500,rm=currentRateMlHr>0?currentRateMlHr:1;var sev,sc;if(p>=3.1){sev='正常（3.1–7.5 mg/dL）';sc='#2E7D32';}else if(p>=2.0){sev='輕度低血磷';sc='#854F0B';}else if(p>=1.0){sev='中度低血磷';sc='#993C1D';}else{sev='重度低血磷';sc='#5C0000';}var pm=ri*wt,mk=pm/KPO4_PHOS_PER_ML,kh=mk*KPO4_K_PER_ML,pc=pm/rm,mb=(pc/KPO4_PHOS_PER_ML)*bag,ki=mb*KPO4_K_PER_ML;var dk=p<3.5?'<div class="dkabox">💡 血磷 '+p+' mg/dL（&lt;3.5）— 若此動物有 <b>DKA 傾向</b>，建議考慮<b>預防性補磷</b>。胰島素治療會加速磷向細胞內移動，有引發低血磷風險。</div>':'';var sw=p<1.0?'<div class="errbox">⚠ 重度低血磷 — 需加護病房監護，頻繁監測 Ca²⁺。</div>':'';document.getElementById('phos-result').innerHTML='<b style="color:'+sc+';">'+sev+'</b>（'+p+' mg/dL）<br>'+dk+'速率：<b>'+ri+' mmol/kg/hr</b> → <b>'+pm.toFixed(3)+' mmol 磷/hr</b>（'+wt+' kg）<br>= <b>'+mk.toFixed(3)+' mL/hr</b> KPO₄ &nbsp;|&nbsp; 同時給 K⁺：<b>'+kh.toFixed(3)+' mEq/hr</b><br><div style="border-top:1px solid #BBDEFB;margin:6px 0;"></div>目前輸液速率 <b>'+rm.toFixed(1)+' mL/hr</b>，加入 <b>'+bag+' mL</b> 袋中：<br>注入 <b>'+mb.toFixed(2)+' mL</b> KPO₄ 原液<br>KPO₄ 帶入的 K⁺：<b>'+mb.toFixed(2)+' mL × 4.4 mEq/mL = '+ki.toFixed(2)+' mEq</b>'+sw;}
+function calcCombo(){var k=parseFloat(document.getElementById('k-val').value),bag=parseInt(document.getElementById('k-bag').value)||500,kc=parseFloat(document.getElementById('k-conc').value)||2,pr=parseFloat(document.getElementById('phos-rate-input').value)||0.03,wt=parseFloat(document.getElementById('phos-wt').value)||currentWt,rm=currentRateMlHr>0?currentRateMlHr:1,isM=(kMode==='manual');var ta=isM?(parseFloat(document.getElementById('k-custom').value)||28):getKRow(k).add,mr=isM?(parseFloat(document.getElementById('k-maxrate').value)||18):getKRow(k).maxRate;var tk=(ta/1000)*bag,pm=pr*wt,pc=pm/rm,mb=(pc/KPO4_PHOS_PER_ML)*bag,kp=mb*KPO4_K_PER_ML,kc2=tk-kp,ml=kc2>0?kc2/kc:0,rpk=rm/wt;var rW=rpk>mr?'<div class="errbox">⚠ 目前輸液速率 '+rpk.toFixed(2)+' mL/kg/hr 超過 K⁺ 最高速率（'+mr+' mL/kg/hr）— 請先降低輸液速率再加鉀</div>':'';var nW=kc2<0?'<div class="errbox">⚠ KPO₄ 帶入的 K⁺（'+kp.toFixed(2)+' mEq）已超過目標值（'+tk.toFixed(1)+' mEq），請勿再加 KCl，考慮降低 KPO₄ 速率。</div>':'';var mT=isM?'&nbsp;<span style="font-size:11px;background:#FFF3E0;color:#6D3B00;padding:1px 7px;border-radius:10px;">手動指定</span>':'';var h='<div class="combo-box"><div class="combo-title">鉀＋磷合併補充 — '+bag+' mL 0.9% NaCl</div>K⁺ 目標：<b>'+ta+' mEq/L</b>'+mT+' → 本袋共需 <b>'+tk.toFixed(1)+' mEq</b><br><div style="border-top:1px solid #AED581;margin:7px 0;"></div><b>步驟一 — 加 KPO₄：</b>注入 <b>'+mb.toFixed(2)+' mL</b> KPO₄ 原液<br>→ 磷：<b>'+(mb*KPO4_PHOS_PER_ML).toFixed(2)+' mmol</b> &nbsp;|&nbsp; K⁺：<b>'+mb.toFixed(2)+' × 4.4 = '+kp.toFixed(2)+' mEq</b><br>'+(kc2>0?'<b>步驟二 — 加 KCl：</b>剩餘 K⁺ <b>'+kc2.toFixed(2)+' mEq</b> → 注入 <b>'+ml.toFixed(2)+' mL</b> 的 '+kc+' mEq/mL KCl 原液<br>':'<b>步驟二 — KCl：</b>不需加（KPO₄ 已達或超過 K⁺ 目標）<br>')+'<div style="border-top:1px solid #AED581;margin:7px 0;"></div>K⁺ 速率上限：<b>'+mr+' mL/kg/hr</b></div>'+rW+nW;document.getElementById('combo-result').innerHTML=h;}
+
+setSp('dog');setCard(false);setFluid('LRS');setEtab('k');
+calcK();calcNaLow();calcNaHigh();calcPhos();calcCombo();
+</script>
+</body>
+</html>
