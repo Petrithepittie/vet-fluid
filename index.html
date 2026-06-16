@@ -95,6 +95,49 @@ input[type=range]{width:100%;accent-color:#185FA5;}
 .dex-result b{font-weight:600;}
 .dex-warn{background:#FFEBEE;border:1px solid #FFCDD2;border-radius:8px;padding:10px 12px;font-size:13px;color:#5C0000;margin-top:8px;line-height:1.6;}
 .dex-info{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:10px 12px;font-size:12px;color:#1B5E20;margin-top:8px;line-height:1.6;}
+
+/* 處方總結卡 */
+.rx-card{background:#fff;border:2px solid #185FA5;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(24,95,165,.12);}
+.rx-title{font-size:13px;font-weight:700;color:#185FA5;letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.rx-section{margin-bottom:10px;}
+.rx-label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.rx-row{display:flex;align-items:baseline;gap:6px;padding:4px 0;border-bottom:0.5px solid #F0F0F0;font-size:13px;}
+.rx-row:last-child{border-bottom:none;}
+.rx-key{color:#555;min-width:120px;}
+.rx-val{color:#1A1A1A;font-weight:600;}
+.rx-sub{color:#888;font-size:11px;margin-left:4px;}
+.rx-warn{background:#FFEBEE;border:1px solid #FFCDD2;border-radius:8px;padding:8px 12px;font-size:12px;color:#5C0000;margin-top:8px;line-height:1.6;}
+.rx-ok{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:8px 12px;font-size:12px;color:#1B5E20;margin-top:8px;}
+.rx-none{color:#aaa;font-style:italic;font-size:13px;}
+.print-btn{display:inline-block;margin-top:12px;padding:8px 20px;background:#185FA5;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
+.print-btn:hover{background:#0D47A1;}
+
+.toggle-switch-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 12px;background:#F5F5F5;border-radius:8px;}
+.toggle-switch-row label{font-size:13px;font-weight:600;color:#1A1A1A;margin:0;}
+.toggle-switch-row .hint{font-size:12px;color:#888;margin-left:auto;}
+.sw{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;}
+.sw input{opacity:0;width:0;height:0;}
+.sw .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CCC;border-radius:24px;transition:.3s;}
+.sw .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+.sw input:checked+.slider{background:#185FA5;}
+.sw input:checked+.slider:before{transform:translateX(20px);}
+.panel-disabled{opacity:0.4;pointer-events:none;}
+
+/* 滲透壓 */
+.osm-card{background:#F3E5F5;border:1px solid #CE93D8;border-radius:10px;padding:14px;margin-top:10px;}
+.osm-title{font-size:12px;font-weight:700;color:#4A148C;margin-bottom:8px;}
+.osm-val{font-size:28px;font-weight:700;color:#4A148C;}
+.osm-unit{font-size:13px;color:#7B1FA2;margin-left:4px;}
+.osm-detail{font-size:12px;color:#6A1B9A;margin-top:6px;line-height:1.6;}
+.osm-iso{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:6px 10px;font-size:12px;color:#1B5E20;margin-top:6px;}
+.osm-hyper{background:#FFEBEE;border:1px solid #FFCDD2;border-radius:8px;padding:6px 10px;font-size:12px;color:#5C0000;margin-top:6px;}
+.osm-hypo{background:#E3F2FD;border:1px solid #90CAF9;border-radius:8px;padding:6px 10px;font-size:12px;color:#0D47A1;margin-top:6px;}
+@media print{
+  body{background:#fff;padding:0;}
+  .no-print{display:none!important;}
+  .rx-card{border:2px solid #000;box-shadow:none;}
+}
+
 footer{text-align:center;font-size:11px;color:#AAA;margin-top:20px;padding:10px;}
 </style>
 </head>
@@ -253,6 +296,12 @@ footer{text-align:center;font-size:11px;color:#AAA;margin-top:20px;padding:10px;
     </div>
 
     <div class="epanel" id="ep-phos">
+      <div class="toggle-switch-row">
+        <label>補磷（KPO₄）</label>
+        <label class="sw"><input type="checkbox" id="phos-active" onchange="togglePanel('phos');calcPhos();calcCombo();calcSummary();"><span class="slider"></span></label>
+        <span class="hint">預設關閉，開啟後才納入計算</span>
+      </div>
+      <div id="phos-panel-body" class="panel-disabled">
       <div class="einput-row">
         <div class="field"><label>血清磷（mg/dL）<span class="ref-badge">正常 3.1–7.5</span></label><input type="number" id="phos-val" value="2.0" min="0.1" max="7.5" step="0.1" oninput="calcPhos();calcCombo();"></div>
         <div class="field"><label>體重（kg）</label><input type="number" id="phos-wt" value="10" min="0.1" max="120" step="0.1" oninput="calcPhos();calcCombo();"></div>
@@ -264,6 +313,7 @@ footer{text-align:center;font-size:11px;color:#AAA;margin-top:20px;padding:10px;
       <div id="phos-result" class="eresult"></div>
       <div class="hint-box"><b>依嚴重程度建議 KPO₄ 速率</b><br>輕度（2.0–3.0 mg/dL）：0.01–0.03 mmol/kg/hr<br>中度（1.0–1.9 mg/dL）：0.03–0.06 mmol/kg/hr<br>重度（&lt;1.0 mg/dL）：0.06–0.12 mmol/kg/hr — 需加護病房監護<br><br><b>KPO₄ 原液：</b>磷 3 mmol/mL，K⁺ 4.4 mEq/mL</div>
       <div class="note">禁止與 LRS 混用（磷酸鹽與 Ca²⁺ 會沉澱）。必須使用 0.9% NaCl 為載體。每 4–6 小時監測 Ca²⁺ 及血磷。</div>
+      </div><!-- /phos-panel-body -->
     </div>
 
     <div class="epanel" id="ep-combo">
@@ -273,6 +323,12 @@ footer{text-align:center;font-size:11px;color:#AAA;margin-top:20px;padding:10px;
     </div>
 
     <div class="epanel" id="ep-dex">
+      <div class="toggle-switch-row">
+        <label>補糖（G50 Dextrose）</label>
+        <label class="sw"><input type="checkbox" id="dex-active" onchange="togglePanel('dex');calcDex();calcSummary();"><span class="slider"></span></label>
+        <span class="hint">預設關閉，開啟後才納入計算</span>
+      </div>
+      <div id="dex-panel-body" class="panel-disabled">
       <div style="background:#F5F5F5;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:#555;line-height:1.6;">
         底液：<b id="dex-base-label" style="color:#1A1A1A;">LRS</b>（依上方輸液種類自動帶入）
       </div>
@@ -285,8 +341,23 @@ footer{text-align:center;font-size:11px;color:#AAA;margin-top:20px;padding:10px;
         <button class="dex-btn" id="dex-50" onclick="setDex(5.0)">5.0%</button>
       </div>
       <div id="dex-result"></div>
+      </div><!-- /dex-panel-body -->
     </div>
 
+  </div>
+</div>
+
+<!-- 處方總結卡 -->
+<div class="rx-card no-print" id="rx-summary">
+  <div class="rx-title">📋 處方總結卡</div>
+  <div id="rx-content"><div class="rx-none">請先填寫上方病患資料及電解質數值</div></div>
+  <button class="print-btn no-print" onclick="window.print()">🖨️ 列印 / 儲存 PDF</button>
+</div>
+<!-- 處方總結卡（列印版，always in DOM） -->
+<div id="rx-print-card" style="display:none;">
+  <div class="rx-card">
+    <div class="rx-title">📋 獸醫輸液處方</div>
+    <div id="rx-print-content"></div>
   </div>
 </div>
 <footer>獸醫輸液計算器 v3.0 ｜ 僅供臨床參考，不取代專業醫療判斷</footer>
@@ -326,8 +397,22 @@ function calc(){
   var extra='';if(dehyd>=10)extra+=' 若有低蛋白血症，考慮加用膠體液（羥乙基澱粉／白蛋白）。';if(sp==='cat'&&fluid==='NS')extra+=' 注意：貓對高鈉負荷較敏感，建議優先選用 LRS。';
   document.getElementById('info-fluid').textContent=msgs[fluid]+extra;
   document.getElementById('nahigh-wt').value=wt;document.getElementById('phos-wt').value=wt;document.getElementById('nalow-wt').value=wt;
-  calcNaHigh();calcPhos();calcCombo();calcNaLow();calcDex();
+  calcNaHigh();calcPhos();calcCombo();calcNaLow();calcDex();calcSummary();
 }
+
+function togglePanel(panel){
+  var cb=document.getElementById(panel+'-active');
+  var body=document.getElementById(panel+'-panel-body');
+  if(cb.checked){
+    body.classList.remove('panel-disabled');
+  } else {
+    body.classList.add('panel-disabled');
+    if(panel==='dex'){dexConc=null;document.getElementById('dex-25').className='dex-btn';document.getElementById('dex-50').className='dex-btn';document.getElementById('dex-result').innerHTML='';}
+  }
+}
+function isPhosActive(){return document.getElementById('phos-active')&&document.getElementById('phos-active').checked;}
+function isDexActive(){return document.getElementById('dex-active')&&document.getElementById('dex-active').checked;}
+
 function toggleE(){var b=document.getElementById('ebody'),a=document.getElementById('earrow');b.classList.toggle('open');a.textContent=b.classList.contains('open')?'▲ 收合':'▼ 展開';}
 function setEtab(t){['k','na-low','na-high','phos','combo','dex'].forEach(function(x){document.getElementById('tab-'+x).setAttribute('style',x===t?TON:TOFF);document.getElementById('ep-'+x).className='epanel'+(x===t?' open':'');});}
 function getKRow(k){for(var i=0;i<kTable.length;i++){if(k<=kTable[i].hi)return kTable[i];}return kTable[kTable.length-1];}
@@ -382,11 +467,191 @@ function calcDex(){
   if(pct>=5)h+='<div class="dex-warn">⚠ 濃度 ≥5%：建議密切監控注射部位，若有紅腫、滲漏請立即更換留置針。高濃度葡萄糖液對血管刺激性較強。</div>';
   h+='</div>';
   document.getElementById('dex-result').innerHTML=h;
+calcSummary();
 }
 function calcNaLow(){var na=parseFloat(document.getElementById('nalow-val').value)||128,wt=parseFloat(document.getElementById('nalow-wt').value)||10,tf=sp==='cat'?0.5:0.6,tbw=wt*tf,nf=130;var sev,sc,tr;if(na<120){sev='重度低血鈉';sc='#6B0000';tr=0.25;}else if(na<125){sev='中度低血鈉';sc='#7A1500';tr=0.5;}else{sev='輕度低血鈉';sc='#7A3B00';tr=0.5;}var dn=(nf-na)/(tbw+1);if(dn<=0){document.getElementById('nalow-result').innerHTML='<div class="errbox">⚠ LRS（Na 130 mEq/L）鈉含量低於或等於目前血清鈉（'+na+' mEq/L），無法升鈉，請重新評估。</div>';return;}var id=(tr/dn)*1000,tc=cardiac?(currentWt*2):(currentWt*15),am=currentRateMlHr>0?currentRateMlHr:id,ad=(am/1000)*dn,ar=ad*24;var h='<b style="color:'+sc+';">'+sev+'（Na⁺ '+na+' mEq/L）</b><br><div style="border-top:1px solid #BBDEFB;margin:7px 0;"></div>TBW = '+wt+' × '+tf+' = <b>'+tbw.toFixed(1)+' L</b>（'+(sp==='dog'?'犬':'貓')+'）<br>ΔNa⁺/L = ('+nf+' − '+na+') ÷ ('+tbw.toFixed(1)+' + 1) = <b>'+dn.toFixed(3)+' mEq/L per litre</b><br><div style="border-top:1px solid #BBDEFB;margin:7px 0;"></div>目標升速：<b>'+tr+' mEq/L/hr</b> → 理想輸液速率：<b>'+id.toFixed(1)+' mL/hr</b><br>';if(id>tc){h+='<div class="adjbox">⚠ 理想速率（'+id.toFixed(1)+' mL/hr）超過循環耐受上限（'+tc.toFixed(1)+' mL/hr，'+(cardiac?'心臟疾病':'15 mL/kg/hr')+'）<br>改以當下輸液需求速率 <b>'+am.toFixed(1)+' mL/hr</b> 估算：血鈉每小時實際上升約 <b>'+ad.toFixed(3)+' mEq/L/hr</b>（每 24 hr 約 <b>'+ar.toFixed(1)+' mEq/L</b>）</div>';}else{h+='輸液：<b>LRS（Na 130 mEq/L）</b><br>預估 Na⁺ 上升：<b>'+((id/1000)*dn).toFixed(3)+' mEq/L/hr</b>（每 24 hr 約 <b>'+((id/1000)*dn*24).toFixed(1)+' mEq/L</b>）';}var rc=id>tc?ar:(id/1000)*dn*24;if(rc>12)h+='<div class="errbox">⚠ 預估每 24 hr Na⁺ 上升 '+rc.toFixed(1)+' mEq/L，超過安全上限（10–12 mEq/L）— 請降低輸液速率或延長矯正時間。</div>';if(na<120)h+='<div class="adjbox" style="margin-top:8px;">⚠ 重度低血鈉（&lt;120 mEq/L）— 建議目標升速 <b>0.25 mEq/L/hr</b>，避免腦部受損。每 2–4 小時監測 Na⁺。</div>';document.getElementById('nalow-result').innerHTML=h;}
 function calcNaHigh(){var na=parseFloat(document.getElementById('nahigh-val').value)||168,wt=parseFloat(document.getElementById('nahigh-wt').value)||10,dh=parseFloat(document.getElementById('nahigh-dehyd').value)||0;var def=wt*dh*10,ml=currentMaint*wt,p1=dh>0?(def+ml):ml,fw=0.6*wt*(1-(155/na))*1000,fr=(fw/48).toFixed(1),nd=(na-155)/2;var nr=na>=150&&na<=165?'<span style="font-size:11px;background:#E8F5E9;color:#2E7D32;padding:1px 6px;border-radius:10px;margin-left:4px;">正常範圍</span>':'<span style="font-size:11px;background:#FFEBEE;color:#7A0000;padding:1px 6px;border-radius:10px;margin-left:4px;">高於正常（正常 150–165）</span>';var sw='';if(nd>12){var sh=Math.ceil((na-155)/12*24);sw='<br><span style="color:#854F0B">⚑ 預估每 24 hr 下降 '+nd.toFixed(1)+' mEq/L，超過上限 — 建議延長至最少 '+sh+' 小時</span>';}var h='<div style="margin-bottom:8px;font-size:13px;">Na⁺ '+na+' mEq/L'+nr+'</div>';h+='<div class="step-box step1"><b>第一階段 — 補充脫水 ＋ 維持量（前 24 小時）</b><br>輸液：<b>0.9% NaCl</b><br>';h+=dh>0?'缺失量 <b>'+Math.round(def)+' mL</b> ＋ 維持量 <b>'+Math.round(ml)+' mL</b>（'+currentMaint+' mL/kg/天）= 總量 <b>'+Math.round(p1)+' mL</b><br>':'脫水量 0（偵測不到）＋ 維持量 <b>'+Math.round(ml)+' mL</b>（'+currentMaint+' mL/kg/天）<br>';h+='速率：<b>'+(p1/24).toFixed(1)+' mL/hr</b></div><div class="step-box step2"><b>第二階段 — 補充自由水不足（最少 48 小時）</b><br>自由水缺失量：<b>'+Math.round(fw)+' mL</b>（0.6 × '+wt+' × [1−155/'+na+']）<br>輸液：<b>LRS</b>（Na 130 mEq/L）<br>速率：<b>'+fr+' mL/hr</b>，分 48 小時輸注<br>預估 Na⁺ 下降：<b>每 24 hr 約 '+nd.toFixed(1)+' mEq/L</b>'+sw+'</div>';document.getElementById('nahigh-result').innerHTML=h;}
 function calcPhos(){var p=parseFloat(document.getElementById('phos-val').value),wt=parseFloat(document.getElementById('phos-wt').value)||10,ri=parseFloat(document.getElementById('phos-rate-input').value)||0.03,bag=parseInt(document.getElementById('phos-bag').value)||500,rm=currentRateMlHr>0?currentRateMlHr:1;var sev,sc;if(p>=3.1){sev='正常（3.1–7.5 mg/dL）';sc='#2E7D32';}else if(p>=2.0){sev='輕度低血磷';sc='#854F0B';}else if(p>=1.0){sev='中度低血磷';sc='#993C1D';}else{sev='重度低血磷';sc='#5C0000';}var pm=ri*wt,mk=pm/KPO4_PHOS_PER_ML,kh=mk*KPO4_K_PER_ML,pc=pm/rm,mb=(pc/KPO4_PHOS_PER_ML)*bag,ki=mb*KPO4_K_PER_ML;var dk=p<3.5?'<div class="dkabox">💡 血磷 '+p+' mg/dL（&lt;3.5）— 若此動物有 <b>DKA 傾向</b>，建議考慮<b>預防性補磷</b>。胰島素治療會加速磷向細胞內移動，有引發低血磷風險。</div>':'';var sw=p<1.0?'<div class="errbox">⚠ 重度低血磷 — 需加護病房監護，頻繁監測 Ca²⁺。</div>':'';document.getElementById('phos-result').innerHTML='<b style="color:'+sc+';">'+sev+'</b>（'+p+' mg/dL）<br>'+dk+'速率：<b>'+ri+' mmol/kg/hr</b> → <b>'+pm.toFixed(3)+' mmol 磷/hr</b>（'+wt+' kg）<br>= <b>'+mk.toFixed(3)+' mL/hr</b> KPO₄ &nbsp;|&nbsp; 同時給 K⁺：<b>'+kh.toFixed(3)+' mEq/hr</b><br><div style="border-top:1px solid #BBDEFB;margin:6px 0;"></div>目前輸液速率 <b>'+rm.toFixed(1)+' mL/hr</b>，加入 <b>'+bag+' mL</b> 袋中：<br>注入 <b>'+mb.toFixed(2)+' mL</b> KPO₄ 原液<br>KPO₄ 帶入的 K⁺：<b>'+mb.toFixed(2)+' mL × 4.4 mEq/mL = '+ki.toFixed(2)+' mEq</b>'+sw;}
-function calcCombo(){var k=parseFloat(document.getElementById('k-val').value),bag=parseInt(document.getElementById('k-bag').value)||500,kc=parseFloat(document.getElementById('k-conc').value)||2,pr=parseFloat(document.getElementById('phos-rate-input').value)||0.03,wt=parseFloat(document.getElementById('phos-wt').value)||currentWt,rm=currentRateMlHr>0?currentRateMlHr:1,isM=(kMode==='manual');var ta=isM?(parseFloat(document.getElementById('k-custom').value)||28):getKRow(k).add,mr=isM?(parseFloat(document.getElementById('k-maxrate').value)||18):getKRow(k).maxRate;var tk=(ta/1000)*bag,pm=pr*wt,pc=pm/rm,mb=(pc/KPO4_PHOS_PER_ML)*bag,kp=mb*KPO4_K_PER_ML,kc2=tk-kp,ml=kc2>0?kc2/kc:0,rpk=rm/wt;var rW=rpk>mr?'<div class="errbox">⚠ 目前輸液速率 '+rpk.toFixed(2)+' mL/kg/hr 超過 K⁺ 最高速率（'+mr+' mL/kg/hr）— 請先降低輸液速率再加鉀</div>':'';var nW=kc2<0?'<div class="errbox">⚠ KPO₄ 帶入的 K⁺（'+kp.toFixed(2)+' mEq）已超過目標值（'+tk.toFixed(1)+' mEq），請勿再加 KCl，考慮降低 KPO₄ 速率。</div>':'';var mT=isM?'&nbsp;<span style="font-size:11px;background:#FFF3E0;color:#6D3B00;padding:1px 7px;border-radius:10px;">手動指定</span>':'';var h='<div class="combo-box"><div class="combo-title">鉀＋磷合併補充 — '+bag+' mL 0.9% NaCl</div>K⁺ 目標：<b>'+ta+' mEq/L</b>'+mT+' → 本袋共需 <b>'+tk.toFixed(1)+' mEq</b><br><div style="border-top:1px solid #AED581;margin:7px 0;"></div><b>步驟一 — 加 KPO₄：</b>注入 <b>'+mb.toFixed(2)+' mL</b> KPO₄ 原液<br>→ 磷：<b>'+(mb*KPO4_PHOS_PER_ML).toFixed(2)+' mmol</b> &nbsp;|&nbsp; K⁺：<b>'+mb.toFixed(2)+' × 4.4 = '+kp.toFixed(2)+' mEq</b><br>'+(kc2>0?'<b>步驟二 — 加 KCl：</b>剩餘 K⁺ <b>'+kc2.toFixed(2)+' mEq</b> → 注入 <b>'+ml.toFixed(2)+' mL</b> 的 '+kc+' mEq/mL KCl 原液<br>':'<b>步驟二 — KCl：</b>不需加（KPO₄ 已達或超過 K⁺ 目標）<br>')+'<div style="border-top:1px solid #AED581;margin:7px 0;"></div>K⁺ 速率上限：<b>'+mr+' mL/kg/hr</b></div>'+rW+nW;document.getElementById('combo-result').innerHTML=h;}
+function calcCombo(){
+  // If phos toggle is OFF, show simplified K-only summary
+  if(!isPhosActive()){
+    var k2=parseFloat(document.getElementById('k-val').value);
+    var bag2=parseInt(document.getElementById('k-bag').value)||500;
+    var kc2=parseFloat(document.getElementById('k-conc').value)||2;
+    var isM2=(kMode==='manual');
+    var ta2=isM2?(parseFloat(document.getElementById('k-custom').value)||28):getKRow(k2).add;
+    var mr2=isM2?(parseFloat(document.getElementById('k-maxrate').value)||18):getKRow(k2).maxRate;
+    var meq2=(ta2/1000)*bag2, mlk2=meq2/kc2, rpk2=currentWt>0?currentRateMlHr/currentWt:0;
+    var rw2=rpk2>mr2?'<div class="errbox">⚠ 目前輸液速率 '+rpk2.toFixed(2)+' mL/kg/hr 超過 K⁺ 最高速率（'+mr2+' mL/kg/hr）— 請先降低輸液速率再加鉀</div>':'';
+    var mT2=isM2?'&nbsp;<span style="font-size:11px;background:#FFF3E0;color:#6D3B00;padding:1px 7px;border-radius:10px;">手動指定</span>':'';
+    document.getElementById('combo-result').innerHTML=
+      '<div class="combo-box"><div class="combo-title">補鉀計畫（低磷補充已關閉）</div>'+
+      'K⁺ 目標：<b>'+ta2+' mEq/L</b>'+mT2+' → 本袋共需 <b>'+meq2.toFixed(1)+' mEq</b><br>'+
+      '<div style="border-top:1px solid #AED581;margin:7px 0;"></div>'+
+      '注入 <b>'+mlk2.toFixed(2)+' mL</b> 的 '+kc2+' mEq/mL KCl 原液<br>'+
+      'K⁺ 速率上限：<b>'+mr2+' mL/kg/hr</b></div>'+rw2;
+    return;
+  }
+  var k=parseFloat(document.getElementById('k-val').value),bag=parseInt(document.getElementById('k-bag').value)||500,kc=parseFloat(document.getElementById('k-conc').value)||2,pr=parseFloat(document.getElementById('phos-rate-input').value)||0.03,wt=parseFloat(document.getElementById('phos-wt').value)||currentWt,rm=currentRateMlHr>0?currentRateMlHr:1,isM=(kMode==='manual');var ta=isM?(parseFloat(document.getElementById('k-custom').value)||28):getKRow(k).add,mr=isM?(parseFloat(document.getElementById('k-maxrate').value)||18):getKRow(k).maxRate;var tk=(ta/1000)*bag,pm=pr*wt,pc=pm/rm,mb=(pc/KPO4_PHOS_PER_ML)*bag,kp=mb*KPO4_K_PER_ML,kc2=tk-kp,ml=kc2>0?kc2/kc:0,rpk=rm/wt;var rW=rpk>mr?'<div class="errbox">⚠ 目前輸液速率 '+rpk.toFixed(2)+' mL/kg/hr 超過 K⁺ 最高速率（'+mr+' mL/kg/hr）— 請先降低輸液速率再加鉀</div>':'';var nW=kc2<0?'<div class="errbox">⚠ KPO₄ 帶入的 K⁺（'+kp.toFixed(2)+' mEq）已超過目標值（'+tk.toFixed(1)+' mEq），請勿再加 KCl，考慮降低 KPO₄ 速率。</div>':'';var mT=isM?'&nbsp;<span style="font-size:11px;background:#FFF3E0;color:#6D3B00;padding:1px 7px;border-radius:10px;">手動指定</span>':'';var h='<div class="combo-box"><div class="combo-title">鉀＋磷合併補充 — '+bag+' mL 0.9% NaCl</div>K⁺ 目標：<b>'+ta+' mEq/L</b>'+mT+' → 本袋共需 <b>'+tk.toFixed(1)+' mEq</b><br><div style="border-top:1px solid #AED581;margin:7px 0;"></div><b>步驟一 — 加 KPO₄：</b>注入 <b>'+mb.toFixed(2)+' mL</b> KPO₄ 原液<br>→ 磷：<b>'+(mb*KPO4_PHOS_PER_ML).toFixed(2)+' mmol</b> &nbsp;|&nbsp; K⁺：<b>'+mb.toFixed(2)+' × 4.4 = '+kp.toFixed(2)+' mEq</b><br>'+(kc2>0?'<b>步驟二 — 加 KCl：</b>剩餘 K⁺ <b>'+kc2.toFixed(2)+' mEq</b> → 注入 <b>'+ml.toFixed(2)+' mL</b> 的 '+kc+' mEq/mL KCl 原液<br>':'<b>步驟二 — KCl：</b>不需加（KPO₄ 已達或超過 K⁺ 目標）<br>')+'<div style="border-top:1px solid #AED581;margin:7px 0;"></div>K⁺ 速率上限：<b>'+mr+' mL/kg/hr</b></div>'+rW+nW;document.getElementById('combo-result').innerHTML=h;calcSummary();}
+
+
+
+// ── 滲透壓計算 ──
+function calcOsmolality(){
+  var bag=parseInt(document.getElementById('k-bag').value)||500;
+  var isM=(kMode==='manual');
+  var k=parseFloat(document.getElementById('k-val').value)||0;
+  var phos=parseFloat(document.getElementById('phos-val').value)||0;
+  var phosRate=parseFloat(document.getElementById('phos-rate-input').value)||0;
+  var wt=parseFloat(document.getElementById('phos-wt').value)||currentWt;
+  var dex=dexConc||0;
+  var rm=currentRateMlHr>0?currentRateMlHr:1;
+
+  // Base fluid osmolality (mOsm/L)
+  var baseOsm = fluid==='LRS' ? 273 : 308;
+
+  // KCl added: mEq/L in bag → contributes K+ + Cl- each = mEq/L * 2 (approximate)
+  var targetKConc = isM ? (parseFloat(document.getElementById('k-custom').value)||0) : (k<3.5?getKRow(k).add:0);
+  var kOsm = targetKConc * 2; // K+ + Cl- both contribute
+
+  // KPO4: mmol/L in bag → K2HPO4: contributes ~3 particles per mmol
+  var phosMmolPerHr = isPhosActive() ? phosRate*wt : 0;
+  var phosConc_in_bag = currentRateMlHr>0 ? (phosMmolPerHr/currentRateMlHr)*1000 : 0; // mmol/L
+  var kpo4Osm = phosConc_in_bag * 3;
+
+  // Dextrose: each g/L ≈ 5.5 mOsm/L  (MW 180)
+  var dexGperL = (dex>0&&isDexActive()) ? (dex/100)*1000 : 0; // g/L if dex%
+  var dexOsm = dexGperL * 5.5;
+
+  var totalOsm = baseOsm + kOsm + kpo4Osm + dexOsm;
+
+  var osmLabel, osmClass;
+  if(totalOsm < 250){ osmLabel='低滲（低張）'; osmClass='osm-hypo'; }
+  else if(totalOsm <= 350){ osmLabel='等滲（等張）'; osmClass='osm-iso'; }
+  else if(totalOsm <= 600){ osmLabel='輕度高滲'; osmClass='osm-hyper'; }
+  else { osmLabel='高滲（建議中心靜脈給藥）'; osmClass='osm-hyper'; }
+
+  return {total:totalOsm, label:osmLabel, cls:osmClass, base:baseOsm, kOsm:kOsm, kpo4Osm:kpo4Osm, dexOsm:dexOsm};
+}
+
+// ── 處方總結卡 ──
+function calcSummary(){
+  var wt = parseFloat(document.getElementById('wt').value)||10;
+  var rate = currentRateMlHr;
+  var isM=(kMode==='manual');
+  var k = parseFloat(document.getElementById('k-val').value);
+  var bag = parseInt(document.getElementById('k-bag').value)||500;
+  var kConc = parseFloat(document.getElementById('k-conc').value)||2;
+  var phos = parseFloat(document.getElementById('phos-val').value);
+  var phosRate = parseFloat(document.getElementById('phos-rate-input').value)||0.03;
+  var phosBag = parseInt(document.getElementById('phos-bag').value)||500;
+  var dex = dexConc;
+  var dexBag = parseInt(document.getElementById('dex-bag').value)||500;
+  var flLabel = fluid==='LRS'?'LRS（乳酸林格液）':'0.9% NaCl（生理食鹽水）';
+
+  // KCl
+  var targetKAdd = isM?(parseFloat(document.getElementById('k-custom').value)||0):getKRow(k).add;
+  var kMaxRate = isM?(parseFloat(document.getElementById('k-maxrate').value)||18):getKRow(k).maxRate;
+  var kMeqInBag=(targetKAdd/1000)*bag;
+  var mlKCl=kMeqInBag/kConc;
+  var kActive=(k<3.5);
+
+  // KPO4
+  var phosActive=(phos<3.1)&&isPhosActive();
+  var phosMmolPerHr=phosRate*wt;
+  var phosConc_ml=currentRateMlHr>0?currentRateMlHr:1;
+  var mlKPO4InBag=((phosMmolPerHr/phosConc_ml)/KPO4_PHOS_PER_ML)*phosBag;
+  var kFromKPO4=mlKPO4InBag*KPO4_K_PER_ML;
+
+  // Dextrose
+  var dexActive=(dex!==null)&&isDexActive();
+  var dexG=dexActive?dexBag*(dex/100):0;
+  var mlG50=dexActive?dexG/0.5:0;
+
+  // Osmolality
+  var osm = calcOsmolality();
+
+  var lines=[];
+  // Fluid base
+  lines.push({k:'底液',v:flLabel+' '+bag+' mL',sub:''});
+  lines.push({k:'輸液速率',v:rate.toFixed(1)+' mL/hr',sub:'（'+( rate/wt).toFixed(2)+' mL/kg/hr）'});
+  lines.push({k:'體重',v:wt+' kg',sub:'脫水 '+dehyd+'%'});
+
+  // KCl
+  if(kActive){
+    var rateOk = (rate/wt)<=kMaxRate;
+    lines.push({k:'KCl',v:mlKCl.toFixed(1)+' mL 注入袋中',sub:'（'+kConc+' mEq/mL，共 '+kMeqInBag.toFixed(1)+' mEq）'+(rateOk?'':'⚠ 速率超限')});
+  }
+
+  // KPO4
+  if(phosActive){
+    lines.push({k:'KPO₄',v:mlKPO4InBag.toFixed(2)+' mL 注入袋中',sub:'（'+phosRate+' mmol/kg/hr，帶入 K⁺ '+kFromKPO4.toFixed(2)+' mEq）'});
+  }
+
+  // G50
+  if(dexActive){
+    var dexNewTotal=dexBag+mlG50;
+    var actualConc=(dexG/dexNewTotal)*100;
+    lines.push({k:'G50 (50% Dextrose)',v:mlG50.toFixed(1)+' mL',sub:'（目標 '+dex+'%，若先抽出等量底液濃度精準；直接加入實際濃度約 '+actualConc.toFixed(2)+'%）'});
+  }
+
+  if(!kActive && !phosActive && !dexActive){
+    lines.push({k:'電解質添加',v:'無',sub:''});
+  }
+
+  // Build HTML
+  var h='<div class="rx-section">';
+  h+='<div class="rx-label">病患 / 輸液計畫</div>';
+  lines.forEach(function(l){
+    h+='<div class="rx-row"><span class="rx-key">'+l.k+'</span><span class="rx-val">'+l.v+'</span><span class="rx-sub">'+l.sub+'</span></div>';
+  });
+  h+='</div>';
+
+  // Osmolality section
+  h+='<div class="rx-section">';
+  h+='<div class="rx-label">輸液滲透壓估算</div>';
+  h+='<div class="osm-card">';
+  h+='<div class="osm-title">最終輸液滲透壓（估算值）<span style="font-size:11px;font-weight:400;color:#7B1FA2;margin-left:8px;">犬貓正常血漿滲透壓：290–310 mOsm/L</span></div>';
+  h+='<div><span class="osm-val">'+Math.round(osm.total)+'</span><span class="osm-unit">mOsm/L</span></div>';
+  h+='<div class="osm-detail">';
+  h+='底液 '+osm.base+' mOsm/L';
+  if(osm.kOsm>0) h+=' ＋ KCl '+Math.round(osm.kOsm)+' mOsm/L';
+  if(osm.kpo4Osm>0) h+=' ＋ KPO₄ '+Math.round(osm.kpo4Osm)+' mOsm/L';
+  if(osm.dexOsm>0) h+=' ＋ Dextrose '+Math.round(osm.dexOsm)+' mOsm/L';
+  h+='</div>';
+  // Safety zones with ranges
+  var osmWarnMsg='';
+  var osmClass2='';
+  if(osm.total<250){
+    osmClass2='osm-hypo';
+    osmWarnMsg='低滲／低張（&lt;250 mOsm/L）：輸液比血漿低張，可能引起紅血球水腫及溶血，避免長期單獨使用。';
+  } else if(osm.total<=310){
+    osmClass2='osm-iso';
+    osmWarnMsg='等滲（250–310 mOsm/L）：與血漿等張，周邊靜脈給藥安全。';
+  } else if(osm.total<=500){
+    osmClass2='osm-hyper';
+    osmWarnMsg='輕度高滲（311–500 mOsm/L）：可由周邊靜脈短期給予，但需密切監控留置針部位，若出現紅腫滲漏立即更換。';
+  } else if(osm.total<=600){
+    osmClass2='osm-hyper';
+    osmWarnMsg='中度高滲（501–600 mOsm/L）：刺激性較強，周邊給藥需謹慎；建議盡量使用較大靜脈，縮短每袋時間，密切監控血管狀況。';
+  } else {
+    osmClass2='osm-hyper';
+    osmWarnMsg='高滲（&gt;600 mOsm/L）：強烈建議改由中心靜脈導管（CVC）給藥。周邊給予風險高，可能造成靜脈炎、血管壁損傷及組織壞死。';
+  }
+  h+='<div class="'+osmClass2+'">'+osmWarnMsg+'</div>';
+  h+='</div>';
+  h+='</div>';
+
+  // Rate check summary
+  var ratePerKg=rate/wt;
+  if(kActive && ratePerKg>kMaxRate){
+    h+='<div class="rx-warn">⚠ 輸液速率 '+ratePerKg.toFixed(2)+' mL/kg/hr 超過補鉀最高速率（'+kMaxRate+' mL/kg/hr），請降速或不加 KCl。</div>';
+  } else if(kActive){
+    h+='<div class="rx-ok">✅ 輸液速率符合補鉀安全範圍（≤'+kMaxRate+' mL/kg/hr）。</div>';
+  }
+
+  document.getElementById('rx-content').innerHTML=h;
+}
 
 setSp('dog');setCard(false);setFluid('LRS');setEtab('k');
 calcK();calcNaLow();calcNaHigh();calcPhos();calcCombo();
