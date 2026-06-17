@@ -249,6 +249,12 @@ footer{text-align:center;font-size:11px;color:#AAA;margin-top:20px;padding:10px;
     </div>
 
     <div class="epanel open" id="ep-k">
+      <div class="toggle-switch-row">
+        <label>補鉀（KCl）</label>
+        <label class="sw"><input type="checkbox" id="k-active" onchange="togglePanel('k');calcK();calcCombo();calcSummary();"><span class="slider"></span></label>
+        <span class="hint">預設關閉，開啟後才納入計算</span>
+      </div>
+      <div id="k-panel-body" class="panel-disabled">
       <div class="einput-row">
         <div class="field"><label>血清 K⁺（mEq/L）<span class="ref-badge">正常 3.5–5.8</span></label><input type="number" id="k-val" value="3.2" min="1.0" max="8.0" step="0.1" oninput="calcK();calcCombo();"></div>
         <div class="field"><label>輸液袋容量（mL，可自填）</label><input type="number" id="k-bag" value="500" min="50" max="2000" step="50" oninput="calcK();calcCombo();" style="width:100%;height:36px;padding:0 10px;border:1px solid #CCC;border-radius:8px;background:#fff;color:#1A1A1A;font-size:14px;"></div>
@@ -273,6 +279,7 @@ footer{text-align:center;font-size:11px;color:#AAA;margin-top:20px;padding:10px;
         <tbody id="k-tbl"></tbody>
       </table>
       <div class="note">切勿超過最高速率。KCl 只能加入輸液袋中，禁止直接靜脈推注。每 4–6 小時複查 K⁺。</div>
+      </div><!-- /k-panel-body -->
     </div>
 
     <div class="epanel" id="ep-na-low">
@@ -408,8 +415,10 @@ function togglePanel(panel){
   } else {
     body.classList.add('panel-disabled');
     if(panel==='dex'){dexConc=null;document.getElementById('dex-25').className='dex-btn';document.getElementById('dex-50').className='dex-btn';document.getElementById('dex-result').innerHTML='';}
+  if(panel==='k'&&!cb.checked){document.getElementById('k-result').innerHTML='';}
   }
 }
+function isKActive(){return document.getElementById('k-active')&&document.getElementById('k-active').checked;}
 function isPhosActive(){return document.getElementById('phos-active')&&document.getElementById('phos-active').checked;}
 function isDexActive(){return document.getElementById('dex-active')&&document.getElementById('dex-active').checked;}
 
@@ -418,6 +427,7 @@ function setEtab(t){['k','na-low','na-high','phos','combo','dex'].forEach(functi
 function getKRow(k){for(var i=0;i<kTable.length;i++){if(k<=kTable[i].hi)return kTable[i];}return kTable[kTable.length-1];}
 function setKMode(m){kMode=m;document.getElementById('mode-auto').className='mdbtn'+(m==='auto'?' on':'');document.getElementById('mode-manual').className='mdbtn'+(m==='manual'?' on':'');document.getElementById('manual-block').style.display=m==='manual'?'block':'none';calcK();calcCombo();}
 function calcK(){
+  if(!isKActive()){document.getElementById('k-result').innerHTML='<div style="color:#aaa;font-size:13px;font-style:italic;">補鉀已關閉</div>';calcSummary();return;}
   var k=parseFloat(document.getElementById('k-val').value)||3.2,bag=parseInt(document.getElementById('k-bag').value)||500,conc=parseFloat(document.getElementById('k-conc').value)||2;
   var targetAdd,maxRate,isM=(kMode==='manual');
   if(isM){targetAdd=parseFloat(document.getElementById('k-custom').value)||28;maxRate=parseFloat(document.getElementById('k-maxrate').value)||18;}
@@ -474,7 +484,8 @@ function calcNaHigh(){var na=parseFloat(document.getElementById('nahigh-val').va
 function calcPhos(){var p=parseFloat(document.getElementById('phos-val').value),wt=parseFloat(document.getElementById('phos-wt').value)||10,ri=parseFloat(document.getElementById('phos-rate-input').value)||0.03,bag=parseInt(document.getElementById('phos-bag').value)||500,rm=currentRateMlHr>0?currentRateMlHr:1;var sev,sc;if(p>=3.1){sev='正常（3.1–7.5 mg/dL）';sc='#2E7D32';}else if(p>=2.0){sev='輕度低血磷';sc='#854F0B';}else if(p>=1.0){sev='中度低血磷';sc='#993C1D';}else{sev='重度低血磷';sc='#5C0000';}var pm=ri*wt,mk=pm/KPO4_PHOS_PER_ML,kh=mk*KPO4_K_PER_ML,pc=pm/rm,mb=(pc/KPO4_PHOS_PER_ML)*bag,ki=mb*KPO4_K_PER_ML;var dk=p<3.5?'<div class="dkabox">💡 血磷 '+p+' mg/dL（&lt;3.5）— 若此動物有 <b>DKA 傾向</b>，建議考慮<b>預防性補磷</b>。胰島素治療會加速磷向細胞內移動，有引發低血磷風險。</div>':'';var sw=p<1.0?'<div class="errbox">⚠ 重度低血磷 — 需加護病房監護，頻繁監測 Ca²⁺。</div>':'';document.getElementById('phos-result').innerHTML='<b style="color:'+sc+';">'+sev+'</b>（'+p+' mg/dL）<br>'+dk+'速率：<b>'+ri+' mmol/kg/hr</b> → <b>'+pm.toFixed(3)+' mmol 磷/hr</b>（'+wt+' kg）<br>= <b>'+mk.toFixed(3)+' mL/hr</b> KPO₄ &nbsp;|&nbsp; 同時給 K⁺：<b>'+kh.toFixed(3)+' mEq/hr</b><br><div style="border-top:1px solid #BBDEFB;margin:6px 0;"></div>目前輸液速率 <b>'+rm.toFixed(1)+' mL/hr</b>，加入 <b>'+bag+' mL</b> 袋中：<br>注入 <b>'+mb.toFixed(2)+' mL</b> KPO₄ 原液<br>KPO₄ 帶入的 K⁺：<b>'+mb.toFixed(2)+' mL × 4.4 mEq/mL = '+ki.toFixed(2)+' mEq</b>'+sw;}
 function calcCombo(){
   // If phos toggle is OFF, show simplified K-only summary
-  if(!isPhosActive()){
+  if(!isPhosActive()&&!isKActive()){document.getElementById('combo-result').innerHTML='<div class="rx-none">請先開啟低血鉀或低血磷的補充開關</div>';return;}
+  if(!isPhosActive()&&isKActive()){
     var k2=parseFloat(document.getElementById('k-val').value);
     var bag2=parseInt(document.getElementById('k-bag').value)||500;
     var kc2=parseFloat(document.getElementById('k-conc').value)||2;
@@ -511,7 +522,7 @@ function calcOsmolality(){
   var baseOsm = fluid==='LRS' ? 273 : 308;
 
   // KCl added: mEq/L in bag → contributes K+ + Cl- each = mEq/L * 2 (approximate)
-  var targetKConc = isM ? (parseFloat(document.getElementById('k-custom').value)||0) : (k<3.5?getKRow(k).add:0);
+  var targetKConc = (isKActive()&&isM) ? (parseFloat(document.getElementById('k-custom').value)||0) : (isKActive()&&k<3.5?getKRow(k).add:0);
   var kOsm = targetKConc * 2; // K+ + Cl- both contribute
 
   // KPO4: mmol/L in bag → K2HPO4: contributes ~3 particles per mmol
@@ -554,7 +565,7 @@ function calcSummary(){
   var kMaxRate = isM?(parseFloat(document.getElementById('k-maxrate').value)||18):getKRow(k).maxRate;
   var kMeqInBag=(targetKAdd/1000)*bag;
   var mlKCl=kMeqInBag/kConc;
-  var kActive=(k<3.5);
+  var kActive=(k<3.5)&&isKActive();
 
   // KPO4
   var phosActive=(phos<3.1)&&isPhosActive();
